@@ -55,17 +55,34 @@ public class AppointmentController {
 
     @PostMapping("/appointment")
     public ResponseEntity<List<Appointment>> createAppointment(@RequestBody Appointment appointment){
-        /** TODO 
-         * Implement this function, which acts as the POST /api/appointment endpoint.
-         * Make sure to check out the whole project. Specially the Appointment.java class
-         */
         boolean isValid = validateAppointment(appointment.getStartsAt(), appointment.getFinishesAt());
         if (!isValid) {
             return status(HttpStatus.BAD_REQUEST).build();
         }
 
+        boolean isDisponible = validateDisponibility(appointment.getStartsAt(), appointment.getRoom());
+        if (!isDisponible) {
+            return status(HttpStatus.NOT_ACCEPTABLE).build();
+        }
+
         appointmentRepository.save(appointment);
         return status(HttpStatus.OK).body(appointmentRepository.findAll());
+    }
+
+    private boolean validateDisponibility(LocalDateTime startsAt, Room room) {
+        Optional<Appointment> optionalAppointment = appointmentRepository.findAll().stream()
+                .filter(a -> a.getStartsAt().equals(startsAt))
+                .findFirst();
+
+        boolean horaDisponible = false;
+        boolean habitacionDisponible = false;
+        if (optionalAppointment.isPresent()) {
+            horaDisponible = true;
+            habitacionDisponible = !optionalAppointment.get()
+                    .getRoom().getRoomName().equals(room.getRoomName());
+        }
+
+        return horaDisponible == habitacionDisponible;
     }
 
     private boolean validateAppointment(LocalDateTime startsAt, LocalDateTime finishesAt) {
