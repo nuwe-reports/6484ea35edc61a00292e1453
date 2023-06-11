@@ -3,6 +3,7 @@ package com.example.demo.controllers;
 import com.example.demo.repositories.*;
 import com.example.demo.entities.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import static org.springframework.http.ResponseEntity.status;
 
 
 @RestController
@@ -56,9 +59,18 @@ public class AppointmentController {
          * Implement this function, which acts as the POST /api/appointment endpoint.
          * Make sure to check out the whole project. Specially the Appointment.java class
          */
-        return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
+        boolean isValid = validateAppointment(appointment.getStartsAt(), appointment.getFinishesAt());
+        if (!isValid) {
+            return status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        appointmentRepository.save(appointment);
+        return status(HttpStatus.OK).body(appointmentRepository.findAll());
     }
 
+    private boolean validateAppointment(LocalDateTime startsAt, LocalDateTime finishesAt) {
+        return startsAt.plusHours(1).isEqual(finishesAt);
+    }
 
     @DeleteMapping("/appointments/{id}")
     public ResponseEntity<HttpStatus> deleteAppointment(@PathVariable("id") long id){
