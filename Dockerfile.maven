@@ -1,0 +1,31 @@
+# Stage 1: Ejecución de pruebas
+FROM maven:latest as tester
+
+# Copiar los archivos del microservicio
+COPY . /app
+WORKDIR /app
+
+# Ejecutar las pruebas
+RUN mvn test
+
+# Stage 2: Compilación y ejecución del microservicio
+FROM maven:latest as builder
+
+# Copiar los archivos del microservicio
+COPY --from=tester /app /app
+WORKDIR /app
+
+# Compilar el microservicio
+RUN mvn package
+
+# Stage final: Ejecución del microservicio
+FROM openjdk:latest
+
+# Copiar los archivos compilados del microservicio
+COPY --from=builder /app/target/accenture-techhub-0.0.1-SNAPSHOT.war /app/accenture-techhub-0.0.1-SNAPSHOT.war
+
+# Exponer el puerto necesario para el microservicio
+EXPOSE 8080
+
+# Comando para ejecutar el microservicio
+CMD ["java", "-jar", "/app/accenture-techhub-0.0.1-SNAPSHOT.war"]

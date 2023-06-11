@@ -1,0 +1,10 @@
+# Usa una imagen base de MySQL
+FROM mysql:latest
+
+# Establece la variable de entorno para la contraseña de root
+ENV MYSQL_ROOT_PASSWORD root
+
+# Expone el puerto 3306 para acceder a MySQL desde el host
+EXPOSE 3306
+
+ENV MYSQL_DATABASE accwe-hospital
